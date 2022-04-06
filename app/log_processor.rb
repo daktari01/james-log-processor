@@ -5,8 +5,7 @@ class LogProcessor
 
   def most_page_visits
     tally_array = []
-    log_array = process_file(@log_file)
-    log_array.each { |item| tally_array << item.split(/\s+/)[0] }
+    process_file(@log_file)&.each { |item| tally_array << item.split(/\s+/)[0] }
     most_visits_response = "List of webpages with most page views ordered from most pages views to less page views: \n"
     sort_array_of_hashes(tally_array.tally).each do |item|
       response_string = "#{item[0]} #{item[1]} visits \n"
@@ -17,7 +16,7 @@ class LogProcessor
 
   def most_unique_page_visits
     items_array = []
-    process_file(@log_file).each { |item| items_array << item.split(/\s+/) }
+    process_file(@log_file)&.each { |item| items_array << item.split(/\s+/) }
     log_hash_array = []
     items_array.map { |item| item_hash = {}; item_hash[item[0]] = item[1]; log_hash_array << item_hash }
     log_group_array = log_hash_array.group_by { |item| item.keys[0] }
@@ -31,15 +30,14 @@ class LogProcessor
   private
 
   def process_file(file)
-    File.readlines(file)
+    begin
+      File.readlines(file)
+    rescue StandardError
+      puts 'File not found. Please check your data and try again'
+    end
   end
 
   def sort_array_of_hashes(array_of_hashes)
-    array_of_hashes.sort_by { |_, count| -count }
+    array_of_hashes.sort_by { |_, item| -item }
   end
 end
-
-log_p = LogProcessor.new('files/webserver.log')
-log_t = LogProcessor.new('files/test.log')
-
-puts log_p.most_unique_page_visits
